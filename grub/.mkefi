@@ -1,0 +1,21 @@
+#!/bin/bash
+cd ../../
+grub-mkstandalone \
+    --format=x86_64-efi \
+    --output=/mnt/bootx64.efi \
+    --locales="" \
+    --fonts="" \
+    --compress xz \
+    boot/grub/grub.cfg
+
+cd -
+dd if=/dev/zero of=efi.img bs=512 count=2880
+
+mkfs.msdos -F 12 -n 'TUCANA' efi.img
+
+mmd -i efi.img ::EFI
+mmd -i efi.img ::EFI/BOOT
+
+mcopy -i efi.img /mnt/bootx64.efi ::EFI/BOOT/bootx64.efi
+
+
