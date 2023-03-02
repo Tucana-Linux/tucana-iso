@@ -48,7 +48,7 @@ chroot $ROOT /bin/bash -c "make-ca -g --force"
 chroot $ROOT /bin/bash -c "pwconv"
 # Install network manager and the kernel
 chroot $ROOT /bin/bash -c "mercury-sync"
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install linux-tucana network-manager mpc"
+chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install linux-tucana network-manager mpc linux-firmware"
 chroot $ROOT /bin/bash -c "systemctl enable NetworkManager"
 # Locales
 echo "Building Locales"
