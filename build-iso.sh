@@ -269,7 +269,8 @@ cd iso
 mkdir -p boot/grub buffer mod isolinux unmod
 # Copy some stuff and build the efi.img file
 # Change kernel ver isolinux
-sed "s/5\.18\.0/$KERNEL_VERSION/g"
+sed -i "s/5\.18\.0/$KERNEL_VERSION/g" $BUILD_DIR/tucana-iso/isolinux/isolinux.cfg
+sed -i "s/6\.0\.9/$KERNEL_VERSION/g" $BUILD_DIR/tucana-iso/grub/grub.cfg
 
 cp -rpv $BUILD_DIR/tucana-iso/isolinux/* isolinux
 cp -rpv $BUILD_DIR/tucana-iso/grub boot/
