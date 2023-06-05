@@ -2,7 +2,7 @@
 # Build a Tucana ISO from mercury
 set -e
 # The build directory, must be absolute path not relative
-BUILD_DIR=/blfs/builds/iso
+BUILD_DIR=/media/EXSTOR/builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
@@ -118,6 +118,7 @@ chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
  # Setup autologin
 chroot $ROOT /bin/bash -c "systemctl enable lightdm"
 sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
+sed -i 's/#autologin-session=/autologin-session=gnome/' $ROOT/etc/lightdm/lightdm.conf
 
 # Change the init script 
 echo '#!/bin/sh
@@ -267,6 +268,9 @@ mkdir -p iso
 cd iso
 mkdir -p boot/grub buffer mod isolinux unmod
 # Copy some stuff and build the efi.img file
+# Change kernel ver isolinux
+sed "s/5\.18\.0/$KERNEL_VERSION/g"
+
 cp -rpv $BUILD_DIR/tucana-iso/isolinux/* isolinux
 cp -rpv $BUILD_DIR/tucana-iso/grub boot/
 cd boot/grub
