@@ -6,7 +6,7 @@ BUILD_DIR=/blfs/builds/iso
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.0.9
+KERNEL_VERSION=6.3.5
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -108,11 +108,12 @@ fi
 
 # Install a desktop enviorment and any other packages (you can choose here)
 # Gnome
-#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox gdm xdg-user-dirs gedit vim flatpak gnome-tweaks papirus nordic xdg-user-dirs gedit file-roller openssh"
+chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh"
 # XFCE 
 #chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim flatpak gnome-software libsoup3 openssh"
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs gedit vim flatpak"
+#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak"
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
+# Add the desktop, music documents, downloads and other folders
 chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
  # Setup autologin
 chroot $ROOT /bin/bash -c "systemctl enable lightdm"
@@ -245,7 +246,11 @@ exec switch_root /.root "$init" "$@"' > $ROOT/usr/share/mkinitramfs/init.in
 # Generate initrd
 
 chroot $ROOT /bin/bash -c "mkinitramfs $KERNEL_VERSION-tucana"
+# Makes gnome work
 chroot $ROOT /bin/bash -c "gdk-pixbuf-query-loaders --update-cache"
+
+# Setup flatpak
+chroot $ROOT /bin/bash -c "flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
 
 # Unmount temp filesystems and generate squashfs
 cd $BUILD_DIR
