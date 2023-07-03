@@ -35,7 +35,8 @@ printf "y\n" | ./mercury-install base
 # Chroot commands
 
 # Mount temp filesystems
-mount --rbind /dev $ROOT/dev
+mount --bind /dev $ROOT/dev
+mount --bind /dev/pts $ROOT/dev/pts
 mount --bind /proc $ROOT/proc
 mount --bind /sys $ROOT/sys
 
@@ -256,6 +257,7 @@ chroot $ROOT /bin/bash -c "flatpak remote-add --if-not-exists flathub https://fl
 
 # Unmount temp filesystems and generate squashfs
 cd $BUILD_DIR
+umount $ROOT/dev/pts
 umount $ROOT/dev
 umount $ROOT/proc
 umount $ROOT/sys
