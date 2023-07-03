@@ -6,7 +6,7 @@ BUILD_DIR=/media/EXSTOR/builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.3.5
+KERNEL_VERSION=6.4.1
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -108,17 +108,18 @@ fi
 
 # Install a desktop enviorment and any other packages (you can choose here)
 # Gnome
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh"
+#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh"
 # XFCE 
 #chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim flatpak gnome-software libsoup3 openssh"
-#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak"
+# Plasma 5
+chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak ark"
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Add the desktop, music documents, downloads and other folders
 chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
  # Setup autologin
 chroot $ROOT /bin/bash -c "systemctl enable lightdm"
 sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
-sed -i 's/#autologin-session=/autologin-session=gnome/' $ROOT/etc/lightdm/lightdm.conf
+sed -i 's/#autologin-session=/autologin-session=plasma/' $ROOT/etc/lightdm/lightdm.conf
 
 # Change the init script 
 echo '#!/bin/sh
