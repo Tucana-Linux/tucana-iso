@@ -35,7 +35,7 @@ printf "y\n" | ./mercury-install base
 # Chroot commands
 
 # Mount temp filesystems
-mount --bind /dev $ROOT/dev
+mount --rbind /dev $ROOT/dev
 mount --bind /proc $ROOT/proc
 mount --bind /sys $ROOT/sys
 
