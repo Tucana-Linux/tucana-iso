@@ -79,22 +79,22 @@ fi
 #chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh calamares"
 #chroot $ROOT /bin/bash -c "gsettings set org.gnome.shell favorite-apps \"['org.gnome.Nautilus.desktop', 'firefox.desktop', 'org.gnome.Terminal.desktop', 'calamares.desktop']\""
 # XFCE 
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
-# Plasma 5
-#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak ark calamares"
+#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
+# Plasma 6
+chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak ark calamares"
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Add the desktop, music documents, downloads and other folders
 chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
 # Symlink calamares to desktop
-ln -sfv /usr/bin/calamares $ROOT/home/live/Desktop/calamares
+ln -sfv /usr/share/applications/calamares.desktop $ROOT/home/live/Desktop/
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Setup autologin
 chroot $ROOT /bin/bash -c "systemctl enable lightdm"
 sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
-sed -i 's/#autologin-session=/autologin-session=xfce/' $ROOT/etc/lightdm/lightdm.conf
+sed -i 's/#autologin-session=/autologin-session=plasma/' $ROOT/etc/lightdm/lightdm.conf
 
 # Disable pkexec prompt
-cat > /etc/polkit-1/rules.d/50-nopasswd_global.rules << "EOF"
+cat > $ROOT/etc/polkit-1/rules.d/50-nopasswd_global.rules << "EOF"
 /* Allow members of the wheel group to execute any actions
  * without password authentication, similar to "sudo NOPASSWD:"
  */
