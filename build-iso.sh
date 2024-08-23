@@ -6,7 +6,7 @@ BUILD_DIR=/media/EXSTOR/builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.4.1
+KERNEL_VERSION=6.10.3
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -48,48 +48,15 @@ echo "nameserver 1.1.1.1" > $BUILD_DIR/squashfs-root/etc/resolv.conf
 chroot $ROOT /bin/bash -c "make-ca -g --force"
 chroot $ROOT /bin/bash -c "pwconv"
 # Install network manager and the kernel
+sed -i "s|REPO=.*|REPO=$REPO|" $ROOT/usr/bin/mercury-install
+sed -i "s|REPO=.*|REPO=$REPO|" $ROOT/usr/bin/mercury-sync
 chroot $ROOT /bin/bash -c "mercury-sync"
 chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install linux-tucana network-manager mpc linux-firmware"
 chroot $ROOT /bin/bash -c "systemctl enable NetworkManager"
 # Locales
 echo "Building Locales"
-chroot $ROOT /bin/bash -c "mkdir -pv /usr/lib/locale
-localedef -i POSIX -f UTF-8 C.UTF-8 2> /dev/null || true
-localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
-localedef -i de_DE -f ISO-8859-1 de_DE
-localedef -i de_DE@euro -f ISO-8859-15 de_DE@euro
-localedef -i de_DE -f UTF-8 de_DE.UTF-8
-localedef -i el_GR -f ISO-8859-7 el_GR
-localedef -i en_GB -f ISO-8859-1 en_GB
-localedef -i en_GB -f UTF-8 en_GB.UTF-8
-localedef -i en_HK -f ISO-8859-1 en_HK
-localedef -i en_PH -f ISO-8859-1 en_PH
-localedef -i en_US -f ISO-8859-1 en_US
-localedef -i en_US -f UTF-8 en_US.UTF-8
-localedef -i es_ES -f ISO-8859-15 es_ES@euro
-localedef -i es_MX -f ISO-8859-1 es_MX
-localedef -i fa_IR -f UTF-8 fa_IR
-localedef -i fr_FR -f ISO-8859-1 fr_FR
-localedef -i fr_FR@euro -f ISO-8859-15 fr_FR@euro
-localedef -i fr_FR -f UTF-8 fr_FR.UTF-8
-localedef -i is_IS -f ISO-8859-1 is_IS
-localedef -i is_IS -f UTF-8 is_IS.UTF-8
-localedef -i it_IT -f ISO-8859-1 it_IT
-localedef -i it_IT -f ISO-8859-15 it_IT@euro
-localedef -i it_IT -f UTF-8 it_IT.UTF-8
-localedef -i ja_JP -f EUC-JP ja_JP
-localedef -i ja_JP -f SHIFT_JIS ja_JP.SJIS 2> /dev/null || true
-localedef -i ja_JP -f UTF-8 ja_JP.UTF-8
-localedef -i nl_NL@euro -f ISO-8859-15 nl_NL@euro
-localedef -i ru_RU -f KOI8-R ru_RU.KOI8-R
-localedef -i ru_RU -f UTF-8 ru_RU.UTF-8
-localedef -i se_NO -f UTF-8 se_NO.UTF-8
-localedef -i ta_IN -f UTF-8 ta_IN.UTF-8
-localedef -i tr_TR -f UTF-8 tr_TR.UTF-8
-localedef -i zh_CN -f GB18030 zh_CN.GB18030
-localedef -i zh_HK -f BIG5-HKSCS zh_HK.BIG5-HKSCS
-localedef -i zh_TW -f UTF-8 zh_TW.UTF-8"
-
+echo "en_US.UTF-8 UTF-8" > $ROOT/etc/locale.gen
+chroot $ROOT /bin/bash -c "locale-gen"
 # User account setup
 chroot $ROOT /bin/bash -c "useradd -m live"
 chroot $ROOT /bin/bash -c "printf 'tucana\ntucana\n' | passwd live"
@@ -109,18 +76,36 @@ fi
 
 # Install a desktop enviorment and any other packages (you can choose here)
 # Gnome
-#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh"
+#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh calamares"
+#chroot $ROOT /bin/bash -c "gsettings set org.gnome.shell favorite-apps \"['org.gnome.Nautilus.desktop', 'firefox.desktop', 'org.gnome.Terminal.desktop', 'calamares.desktop']\""
 # XFCE 
-#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim flatpak gnome-software libsoup3 openssh"
+chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
 # Plasma 5
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak ark"
+#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak ark calamares"
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Add the desktop, music documents, downloads and other folders
 chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
- # Setup autologin
+# Symlink calamares to desktop
+ln -sfv /usr/bin/calamares $ROOT/home/live/Desktop/calamares
+chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
+# Setup autologin
 chroot $ROOT /bin/bash -c "systemctl enable lightdm"
 sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
-sed -i 's/#autologin-session=/autologin-session=plasma/' $ROOT/etc/lightdm/lightdm.conf
+sed -i 's/#autologin-session=/autologin-session=xfce/' $ROOT/etc/lightdm/lightdm.conf
+
+# Disable pkexec prompt
+cat > /etc/polkit-1/rules.d/50-nopasswd_global.rules << "EOF"
+/* Allow members of the wheel group to execute any actions
+ * without password authentication, similar to "sudo NOPASSWD:"
+ */
+polkit.addRule(function(action, subject) {
+    if (subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});
+
+EOF
+
 
 # Change the init script 
 echo '#!/bin/sh
