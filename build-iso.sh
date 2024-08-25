@@ -6,7 +6,7 @@ BUILD_DIR=/media/EXSTOR/builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.10.3
+KERNEL_VERSION=6.10.6
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -81,7 +81,7 @@ fi
 # XFCE 
 #chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
 # Plasma 6
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full gparted firefox lightdm xdg-user-dirs kate vim flatpak ark calamares"
+chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full firefox lightdm xdg-user-dirs kate vim flatpak ark calamares libsoup3"
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Add the desktop, music documents, downloads and other folders
 chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
@@ -91,7 +91,7 @@ chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Setup autologin
 chroot $ROOT /bin/bash -c "systemctl enable lightdm"
 sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
-sed -i 's/#autologin-session=/autologin-session=plasma/' $ROOT/etc/lightdm/lightdm.conf
+sed -i 's/#autologin-session=/autologin-session=gnome/' $ROOT/etc/lightdm/lightdm.conf
 
 # Disable pkexec prompt
 cat > $ROOT/etc/polkit-1/rules.d/50-nopasswd_global.rules << "EOF"
