@@ -1,12 +1,12 @@
 #!/bin/bash
-# Build a Tucana ISO from mercury
+# Build a Tucana ISO 
 set -e
 # The build directory, must be absolute path not relative
 BUILD_DIR=/media/EXSTOR/builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.10.6
+KERNEL_VERSION=6.12.4
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -19,19 +19,9 @@ rm -rf *
 # Make root folder
 mkdir -p $ROOT
 
-# Get mercury
-git clone https://github.com/xXTeraXx/tucana.git
-cd tucana/mercury
-sed -i "s|INSTALL_PATH=.*|INSTALL_PATH=$ROOT|" mercury-sync
-sed -i "s|INSTALL_PATH=.*|INSTALL_PATH=$ROOT|" mercury-install
-sed -i "s|REPO=.*|REPO=$REPO|" mercury-install
-sed -i "s|REPO=.*|REPO=$REPO|" mercury-sync
-
-# Install base system
-chmod +x mercury-sync mercury-install
-./mercury-sync
-printf "y\n" | ./mercury-install base
-
+# Bootstrap
+neptune-bootstrap /mnt --y
+sed -i "s@\"http.*\"@\"${REPO}\"@" $ROOT/etc/neptune/config.yaml
 # Chroot commands
 
 # Mount temp filesystems
@@ -48,10 +38,8 @@ echo "nameserver 1.1.1.1" > $BUILD_DIR/squashfs-root/etc/resolv.conf
 chroot $ROOT /bin/bash -c "make-ca -g --force"
 chroot $ROOT /bin/bash -c "pwconv"
 # Install network manager and the kernel
-sed -i "s|REPO=.*|REPO=$REPO|" $ROOT/usr/bin/mercury-install
-sed -i "s|REPO=.*|REPO=$REPO|" $ROOT/usr/bin/mercury-sync
-chroot $ROOT /bin/bash -c "mercury-sync"
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install linux-tucana network-manager mpc linux-firmware"
+chroot $ROOT /bin/bash -c "neptune sync"
+chroot $ROOT /bin/bash -c "neptune install --y linux-tucana network-manager mpc linux-firmware"
 chroot $ROOT /bin/bash -c "systemctl enable NetworkManager"
 # Locales
 echo "Building Locales"
@@ -76,12 +64,12 @@ fi
 
 # Install a desktop enviorment and any other packages (you can choose here)
 # Gnome
-#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh calamares"
+#chroot $ROOT /bin/bash -c "neptune install --y gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh calamares"
 #chroot $ROOT /bin/bash -c "gsettings set org.gnome.shell favorite-apps \"['org.gnome.Nautilus.desktop', 'firefox.desktop', 'org.gnome.Terminal.desktop', 'calamares.desktop']\""
 # XFCE 
-#chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
+#chroot $ROOT /bin/bash -c "neptune install --y xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
 # Plasma 6
-chroot $ROOT /bin/bash -c "printf 'y\n' | mercury-install plasma-desktop-full firefox lightdm xdg-user-dirs kate vim flatpak ark calamares libsoup3"
+chroot $ROOT /bin/bash -c "neptune install --y plasma-desktop-full firefox lightdm xdg-user-dirs kate vim flatpak ark calamares libsoup3"
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Add the desktop, music documents, downloads and other folders
 chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
