@@ -238,7 +238,7 @@ mksquashfs squashfs-root tucana.squashfs
 
 
 # Start building the iso
-git clone https://github.com/xXTeraXx/tucana-iso.git
+git clone https://github.com/Tucana-Linux/tucana-iso.git
 
 mkdir -p iso
 cd iso
