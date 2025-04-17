@@ -2,11 +2,11 @@
 # Build a Tucana ISO 
 set -e
 # The build directory, must be absolute path not relative
-BUILD_DIR=/media/EXSTOR/builds
+BUILD_DIR=/media/EXSTOR/iso-builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.12.4
+KERNEL_VERSION=6.14.2
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -20,7 +20,7 @@ rm -rf *
 mkdir -p $ROOT
 
 # Bootstrap
-neptune-bootstrap /mnt --y
+neptune-bootstrap $ROOT --y
 sed -i "s@\"http.*\"@\"${REPO}\"@" $ROOT/etc/neptune/config.yaml
 # Chroot commands
 
@@ -64,12 +64,13 @@ fi
 
 # Install a desktop enviorment and any other packages (you can choose here)
 # Gnome
-#chroot $ROOT /bin/bash -c "neptune install --y gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh calamares"
+chroot $ROOT /bin/bash -c "neptune install --y gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh calamares"
 #chroot $ROOT /bin/bash -c "gsettings set org.gnome.shell favorite-apps \"['org.gnome.Nautilus.desktop', 'firefox.desktop', 'org.gnome.Terminal.desktop', 'calamares.desktop']\""
 # XFCE 
 #chroot $ROOT /bin/bash -c "neptune install --y xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
 # Plasma 6
-chroot $ROOT /bin/bash -c "neptune install --y plasma-desktop-full firefox lightdm xdg-user-dirs kate vim flatpak ark calamares libsoup3"
+#chroot $ROOT /bin/bash -c "neptune install --y plasma-desktop-full firefox lightdm xdg-user-dirs kate vim flatpak ark calamares libsoup3"
+
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Add the desktop, music documents, downloads and other folders
 chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
