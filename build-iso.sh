@@ -54,9 +54,6 @@ cat > $ROOT/etc/sudoers.d/00-sudo << "EOF"
 Defaults secure_path="/usr/sbin:/usr/bin"
 %wheel ALL=(ALL) NOPASSWD: ALL
 EOF
-cp $BUILD_DIR/tucana/tucana-installer.sh $ROOT/home/live
-cp $BUILD_DIR/tucana/guisetup.sh $ROOT/home/live
-chmod +x $ROOT/home/live/tucana-installer.sh $ROOT/home/live/guisetup.sh
 # Copy any custom config files
 if [[ -d $BUILD_DIR/custom_config ]]; then
 	cp -r $BUILD_DIR/custom_config $ROOT
