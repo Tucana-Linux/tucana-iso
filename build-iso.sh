@@ -75,9 +75,9 @@ chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
 ln -sfv /usr/share/applications/calamares.desktop $ROOT/home/live/Desktop/
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Setup autologin
-chroot $ROOT /bin/bash -c "systemctl enable lightdm"
+#chroot $ROOT /bin/bash -c "systemctl enable lightdm"
 sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
-sed -i 's/#autologin-session=/autologin-session=gnome/' $ROOT/etc/lightdm/lightdm.conf
+sed -i 's/#autologin-session=/autologin-session=gnome-wayland/' $ROOT/etc/lightdm/lightdm.conf
 
 # Disable pkexec prompt
 cat > $ROOT/etc/polkit-1/rules.d/50-nopasswd_global.rules << "EOF"
@@ -145,6 +145,27 @@ do_mount_root()
    mount --bind /cow/mod /.root/mnt/changes
    mount --bind /mnt /.root/mnt/container
 }
+
+do_add_squashfs_to_calamares()
+{
+    UNPACKFS_CONF="/.root/usr/share/calamares/modules/unpackfs.conf"
+    touch "$UNPACKFS_CONF"
+    
+    # Iterate through all .squashfs files in /mnt/boot/
+    find /mnt/boot/ -maxdepth 1 -type f -name "*.squashfs" | while read -r squashfs_file; do
+        # Extract the filename without path and extension to use as a target directory
+        squashfs_basename=$(basename "$squashfs_file")
+        destination="/mnt/boot/$squashfs_basename" # You can modify this to specify a more meaningful destination
+        
+        # Add a new entry to unpackfs.conf
+        echo "Adding squashfs entry for: $squashfs_file"
+        echo "-   source: \"$squashfs_file\"" >> "$UNPACKFS_CONF"
+        echo "    sourcefs: \"squashfs\"" >> "$UNPACKFS_CONF"
+        echo "    destination: \"$destination\"" >> "$UNPACKFS_CONF"
+        echo "" >> "$UNPACKFS_CONF"
+    done
+}
+
 
 do_try_resume()
 {
