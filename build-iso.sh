@@ -6,7 +6,7 @@ BUILD_DIR=/media/EXSTOR/iso-builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.14.2
+KERNEL_VERSION=6.14.4
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -21,7 +21,7 @@ mkdir -p $ROOT
 
 # Bootstrap
 neptune-bootstrap $ROOT --y
-sed -i "s@\"http.*\"@\"${REPO}\"@" $ROOT/etc/neptune/config.yaml
+sed -i "s@\"http.*\"@\"${REPO}\"@" $ROOT/etc/neptune/repositories.yaml
 # Chroot commands
 
 # Mount temp filesystems
@@ -39,7 +39,7 @@ chroot $ROOT /bin/bash -c "make-ca -g --force"
 chroot $ROOT /bin/bash -c "pwconv"
 # Install network manager and the kernel
 chroot $ROOT /bin/bash -c "neptune sync"
-chroot $ROOT /bin/bash -c "neptune install --y linux-tucana network-manager mpc linux-firmware"
+chroot $ROOT /bin/bash -c "neptune install --y linux-tucana squashfs-tools rsync network-manager mpc linux-firmware"
 chroot $ROOT /bin/bash -c "systemctl enable NetworkManager"
 # Locales
 echo "Building Locales"
@@ -61,8 +61,8 @@ fi
 
 # Install a desktop enviorment and any other packages (you can choose here)
 # Gnome
-chroot $ROOT /bin/bash -c "neptune install --y gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks xdg-user-dirs gedit file-roller openssh calamares"
-#chroot $ROOT /bin/bash -c "gsettings set org.gnome.shell favorite-apps \"['org.gnome.Nautilus.desktop', 'firefox.desktop', 'org.gnome.Terminal.desktop', 'calamares.desktop']\""
+chroot $ROOT /bin/bash -c "neptune install --y gnome gparted firefox lightdm xdg-user-dirs gedit vim flatpak gnome-tweaks gedit file-roller openssh calamares"
+chroot $ROOT /bin/bash -c "gsettings set org.gnome.shell favorite-apps \"['org.gnome.Nautilus.desktop', 'firefox.desktop', 'org.gnome.Terminal.desktop', 'calamares.desktop']\""
 # XFCE 
 #chroot $ROOT /bin/bash -c "neptune install --y xfce4 lightdm gedit polkit-gnome firefox lightdm xdg-user-dirs vim xfce4-terminal flatpak gnome-software libsoup3 openssh calamares"
 # Plasma 6
@@ -75,9 +75,11 @@ chroot $ROOT /bin/bash -c "su live -c xdg-user-dirs-update"
 ln -sfv /usr/share/applications/calamares.desktop $ROOT/home/live/Desktop/
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Setup autologin
-#chroot $ROOT /bin/bash -c "systemctl enable lightdm"
-sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
-sed -i 's/#autologin-session=/autologin-session=gnome-wayland/' $ROOT/etc/lightdm/lightdm.conf
+chroot $ROOT /bin/bash -c "systemctl enable lightdm"
+chroot $ROOT /bin/bash -c "systemctl enable sshd"
+#sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
+# plasma is plasmawayland, gnome is gnome-wayland
+#sed -i 's/#autologin-session=/autologin-session=gnome/' $ROOT/etc/lightdm/lightdm.conf
 
 # Disable pkexec prompt
 cat > $ROOT/etc/polkit-1/rules.d/50-nopasswd_global.rules << "EOF"
@@ -149,19 +151,18 @@ do_mount_root()
 do_add_squashfs_to_calamares()
 {
     UNPACKFS_CONF="/.root/usr/share/calamares/modules/unpackfs.conf"
-    touch "$UNPACKFS_CONF"
     
     # Iterate through all .squashfs files in /mnt/boot/
     find /mnt/boot/ -maxdepth 1 -type f -name "*.squashfs" | while read -r squashfs_file; do
         # Extract the filename without path and extension to use as a target directory
         squashfs_basename=$(basename "$squashfs_file")
-        destination="/mnt/boot/$squashfs_basename" # You can modify this to specify a more meaningful destination
+        sqfs="/mnt/container/boot/$squashfs_basename" 
         
         # Add a new entry to unpackfs.conf
         echo "Adding squashfs entry for: $squashfs_file"
-        echo "-   source: \"$squashfs_file\"" >> "$UNPACKFS_CONF"
+        echo "-   source: \"$sqfs\"" >> "$UNPACKFS_CONF"
         echo "    sourcefs: \"squashfs\"" >> "$UNPACKFS_CONF"
-        echo "    destination: \"$destination\"" >> "$UNPACKFS_CONF"
+        echo "    destination: \"\"" >> "$UNPACKFS_CONF"
         echo "" >> "$UNPACKFS_CONF"
     done
 }
@@ -233,14 +234,20 @@ if [ -n "$rootdelay"    ] ; then sleep "$rootdelay"              ; fi
 
 do_try_resume # This function will not return if resuming from disk
 do_mount_root
+do_add_squashfs_to_calamares
 
 killall -w ${UDEVD##*/}
 
 exec switch_root /.root "$init" "$@"' > $ROOT/usr/share/mkinitramfs/init.in
 
 # Generate initrd
-
+echo 'EARLY_LOAD_MODULES="xe"' > $ROOT/etc/early_load_modules.conf
 chroot $ROOT /bin/bash -c "mkinitramfs $KERNEL_VERSION-tucana"
+
+# Reinstall initrd so it doesn't mess with the final system
+chroot $ROOT /bin/bash -c "neptune reinstall mkinitramfs"
+
+
 # Makes gnome work
 chroot $ROOT /bin/bash -c "gdk-pixbuf-query-loaders --update-cache"
 
