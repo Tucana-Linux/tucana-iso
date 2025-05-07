@@ -6,7 +6,7 @@ BUILD_DIR=/media/EXSTOR/iso-builds
 # Mercury repo server
 REPO=http://192.168.1.143:88
 # Tucana kernel version
-KERNEL_VERSION=6.14.4
+KERNEL_VERSION=6.14.5
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -76,10 +76,10 @@ ln -sfv /usr/share/applications/calamares.desktop $ROOT/home/live/Desktop/
 chroot $ROOT /bin/bash -c "chown -R live:live /home/live"
 # Setup autologin
 chroot $ROOT /bin/bash -c "systemctl enable lightdm"
-chroot $ROOT /bin/bash -c "systemctl enable sshd"
-#sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
+#chroot $ROOT /bin/bash -c "systemctl enable sshd"
+sed -i 's/#autologin-user=/autologin-user=live/' $ROOT/etc/lightdm/lightdm.conf
 # plasma is plasmawayland, gnome is gnome-wayland
-#sed -i 's/#autologin-session=/autologin-session=gnome/' $ROOT/etc/lightdm/lightdm.conf
+sed -i 's/#autologin-session=/autologin-session=gnome-wayland/' $ROOT/etc/lightdm/lightdm.conf
 
 # Disable pkexec prompt
 cat > $ROOT/etc/polkit-1/rules.d/50-nopasswd_global.rules << "EOF"
@@ -241,11 +241,11 @@ killall -w ${UDEVD##*/}
 exec switch_root /.root "$init" "$@"' > $ROOT/usr/share/mkinitramfs/init.in
 
 # Generate initrd
-echo 'EARLY_LOAD_MODULES="xe"' > $ROOT/etc/early_load_modules.conf
-chroot $ROOT /bin/bash -c "mkinitramfs $KERNEL_VERSION-tucana"
+#echo 'EARLY_LOAD_MODULES="xe"' > $ROOT/etc/early_load_modules.conf
+chroot $ROOT /bin/bash -c "mkinitramfs $KERNEL_VERSION-tucana --live"
 
 # Reinstall initrd so it doesn't mess with the final system
-chroot $ROOT /bin/bash -c "neptune reinstall mkinitramfs"
+chroot $ROOT /bin/bash -c "neptune reinstall --y mkinitramfs"
 
 
 # Makes gnome work
