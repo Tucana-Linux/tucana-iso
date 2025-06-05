@@ -4,9 +4,9 @@ set -e
 # The build directory, must be absolute path not relative
 BUILD_DIR=/media/EXSTOR/iso-builds
 # Mercury repo server
-REPO=http://192.168.1.143:88
+REPO=https://repo.tucanalinux.org/development/mercury
 # Tucana kernel version
-KERNEL_VERSION=6.14.5
+KERNEL_VERSION=6.15.0
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -281,7 +281,7 @@ bash .mkefi
 cd ../../
 
 # Copy the squashfs, initramfs and kernel
-cp -pv $ROOT/boot/vmlinuz-* $BUILD_DIR/iso/boot
+cp -pv $ROOT/boot/vmlinuz-* $BUILD_DIR/iso/boot/vmlinuz-$KERNEL_VERSION-tucana
 cp -pv $ROOT/initrd* $BUILD_DIR/iso/boot
 cp -pv $BUILD_DIR/tucana.squashfs $BUILD_DIR/iso/boot
 
