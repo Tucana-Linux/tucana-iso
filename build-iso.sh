@@ -6,7 +6,7 @@ BUILD_DIR=/media/EXSTOR/iso-builds
 # Mercury repo server
 REPO=https://repo.tucanalinux.org/development/mercury
 # Tucana kernel version
-KERNEL_VERSION=6.15.0
+KERNEL_VERSION=6.15.1
 
 # Don't touch
 ROOT=$BUILD_DIR/squashfs-root
@@ -39,7 +39,7 @@ chroot $ROOT /bin/bash -c "make-ca -g --force"
 chroot $ROOT /bin/bash -c "pwconv"
 # Install network manager and the kernel
 chroot $ROOT /bin/bash -c "neptune sync"
-chroot $ROOT /bin/bash -c "neptune install --y linux-tucana squashfs-tools rsync network-manager mpc linux-firmware"
+chroot $ROOT /bin/bash -c "neptune install --y linux-tucana squashfs-tools rsync network-manager mpc linux-firmware sof-firmware"
 chroot $ROOT /bin/bash -c "systemctl enable NetworkManager"
 # Locales
 echo "Building Locales"
